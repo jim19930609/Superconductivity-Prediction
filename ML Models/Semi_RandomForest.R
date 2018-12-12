@@ -1,10 +1,10 @@
 library("randomForest")
 
 # Readin Data into DataFrame
-sem = read.csv('C:\\Users\\jim19\\Desktop\\Statistics_Project\\train.csv')
+sem = read.csv('C:\\Users\\jim19\\Desktop\\Statistics_Project\\ML Models\\train.csv')
 
 # Split into Traing & Test
-smp_size <- floor(0.75 * nrow(sem))
+smp_size <- floor(0.8 * nrow(sem))
 train_ind <- sample(seq_len(nrow(sem)), size = smp_size)
 
 sem_train = sem[train_ind, ]
@@ -16,35 +16,64 @@ Y_train = as.matrix(sem_train["critical_temp"])
 X_test = as.matrix(sem_test[-82])
 Y_test = as.matrix(sem_test["critical_temp"])
 
+# Fit Model
+# Parameters Tuning
+smp_size2 <- floor(0.8 * nrow(sem_train))
+train_ind2 = sample(seq_len(nrow(sem_train)), size = smp_size2)
+
+sem_train2 = sem_train[train_ind2, ]
+sem_test2 = sem_train[-train_ind2, ]
+
+X_train2 = as.matrix(sem_train2[-82])
+Y_train2 = as.matrix(sem_train2["critical_temp"])
+
+X_test2 = as.matrix(sem_test2[-82])
+Y_test2 = as.matrix(sem_test2["critical_temp"])
 
 # Search for best mtry parameter
-best_mtry = 0
-minerr = Inf
-steps = 5
+steps = 10
 
-n = length(names(sem_train))
+n = length(names(sem_train2))
 lowend = max(sqrt(n)-steps, 0)
 highend = min(sqrt(n)+steps, n)
+
+record = c()
+iter = 0
 for (i in lowend:highend){
+  print(iter)
+  iter = iter + 1
+  
   model = randomForest(sem_train$critical_temp ~ ., 
                         data=sem_train, 
                         mtry=i,
-                        ntree=100)
-  err = mean(model$mse)
-  if (minerr > err) {
-    minerr = err
-    best_mtry = i
-  }
-  print(err)
+                        ntree=1000)
+  
+  pred_test2 = predict(object=model, newdata=sem_test2)
+  TestRMSE = sqrt(sum((pred_test2 - Y_test2)^2)/length(pred_test2))
+  
+  record = c(record, TestRMSE)
 }
 
+# Optimize mtry
+plot(record)
+
+# Train with Optimized mtry
 sem.rf = randomForest(x=X_train,
                       y=Y_train,
-                      mtry=10,
-                      ntree=100,
+                      mtry=2,
+                      ntree=5000,
                       importance=TRUE)
 # Convergence
 plot(sem.rf)
+
+# Stats for time efficiency
+ptm = proc.time()
+sem.rf = randomForest(x=X_train,
+                      y=Y_train,
+                      mtry=2,
+                      ntree=500,
+                      importance=TRUE)
+proc.time() - ptm
 
 # Variable Importance
 importance(x=sem.rf)

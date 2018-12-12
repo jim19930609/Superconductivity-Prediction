@@ -1,10 +1,10 @@
 library("glmnet")
 
 # Readin Data into DataFrame
-sem = read.csv('C:\\Users\\jim19\\Desktop\\Statistics_Project\\train.csv')
+sem = read.csv('C:\\Users\\jim19\\Desktop\\Statistics_Project\\ML Models\\train.csv')
 
 # Split into Traing & Test
-smp_size <- floor(0.75 * nrow(sem))
+smp_size <- floor(0.8 * nrow(sem))
 train_ind <- sample(seq_len(nrow(sem)), size = smp_size)
 
 sem_train = sem[train_ind, ]
@@ -27,7 +27,9 @@ plot(cvresult)
 best_lambda = cvresult$lambda.min
 
 # Apply Naive Bayes
+ptm = proc.time()
 sem_lasso = glmnet(x=X_train, y=Y_train, alpha=1, lambda=best_lambda)
+proc.time() - ptm
 
 # Train Error
 train_pred = predict(sem_lasso, X_train)
