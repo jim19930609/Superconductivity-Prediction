@@ -4,16 +4,12 @@ import numpy as np
 def ActLayer(inputs, ActType):
   if ActType == "Relu":
     output = tf.nn.relu(inputs)
-  elif ActType == "Sigmoid":
-    output = tf.nn.sigmoid(inputs)
-  elif ActType == "Tanh":
-    output = tf.nn.tanh(inputs)
 
   return output
 
 
 def BNLayer(inputs, IsTrain):
-  alpha = 0.8
+  alpha = 0.9
   Shape = inputs.get_shape().as_list()[1]
   MeanVar = tf.Variable(tf.zeros(Shape))
   ScaleVar = tf.Variable(tf.zeros(Shape))
@@ -48,7 +44,7 @@ def MatmulLayer(inputs, NumNeuron):
   return output, W
 
 
-def BuildNetwork(inputs, IsTrain, ActType):
+def BuildNetwork(inputs, IsTrain):
   layers = []
   weights = []
   bnvars = []
@@ -58,10 +54,46 @@ def BuildNetwork(inputs, IsTrain, ActType):
   layers.append(layer)
   bnvars.append(bnvar)
 
-  layers.append(ActLayer(layers[-1], ActType))
+  layers.append(ActLayer(layers[-1], "Relu"))
   
-  # First Layer
-  layer, weight = MatmulLayer(layers[-1], 1000)
+  # 1st Layer
+  with tf.name_scope('Layer_1'):
+      layer, weight = MatmulLayer(layers[-1], 1000)
+      layers.append(layer)
+      weights.append(weight)
+
+      layer, bnvar = BNLayer(layers[-1], IsTrain)
+      layers.append(layer)
+      bnvars.append(bnvar)
+
+      layers.append(ActLayer(layers[-1], "Relu"))
+  
+  # 2st Layer
+  with tf.name_scope('Layer_2'):
+      layer, weight = MatmulLayer(layers[-1], 2000)
+      layers.append(layer)
+      weights.append(weight)
+
+      layer, bnvar = BNLayer(layers[-1], IsTrain)
+      layers.append(layer)
+      bnvars.append(bnvar)
+
+      layers.append(ActLayer(layers[-1], "Relu"))
+  
+  # 3st Layer
+  with tf.name_scope('Layer_3'):
+      layer, weight = MatmulLayer(layers[-1], 3000)
+      layers.append(layer)
+      weights.append(weight)
+
+      layer, bnvar = BNLayer(layers[-1], IsTrain)
+      layers.append(layer)
+      bnvars.append(bnvar)
+
+      layers.append(ActLayer(layers[-1], "Relu"))
+  
+  # 4st Layer
+  layer, weight = MatmulLayer(layers[-1], 6000)
   layers.append(layer)
   weights.append(weight)
 
@@ -69,29 +101,18 @@ def BuildNetwork(inputs, IsTrain, ActType):
   layers.append(layer)
   bnvars.append(bnvar)
 
-  layers.append(ActLayer(layers[-1], ActType))
+  layers.append(ActLayer(layers[-1], "Relu"))
   
-  # Second Layer
-  layer, weight = MatmulLayer(layers[-1], 2000)
+  # 5st Layer
+  layer, weight = MatmulLayer(layers[-1], 8000)
   layers.append(layer)
   weights.append(weight)
-  
+
   layer, bnvar = BNLayer(layers[-1], IsTrain)
   layers.append(layer)
   bnvars.append(bnvar)
 
-  layers.append(ActLayer(layers[-1], ActType))
-  
-  # Third Layer
-  layer, weight = MatmulLayer(layers[-1], 3000)
-  layers.append(layer)
-  weights.append(weight)
-  
-  layer, bnvar = BNLayer(layers[-1], IsTrain)
-  layers.append(layer)
-  bnvars.append(bnvar)
-
-  layers.append(ActLayer(layers[-1], ActType))
+  layers.append(ActLayer(layers[-1], "Relu"))
   
   # Output Layer
   layer, weight = MatmulLayer(layers[-1], 1)

@@ -3,37 +3,30 @@ import numpy as np
 from network import *
 
 def ReadInput(filename):
-  FirstLine = True
-  Titles = []
   Data = []
   with open(filename) as f:
     for lines in f:
       line = lines.strip().split(",")
-      if FirstLine:
-        FirstLine = False
-        Titiles = line
-        continue
       Data.append([float(v) for v in line])
   
   Data = np.array(Data)
 
-  return Titles, Data
+  return Data
 
 
 if __name__ == "__main__":
   testfilename = "data/test.csv"
-  Titles, TestData = ReadInput(testfilename)
+  TestData = ReadInput(testfilename)
   trainfilename = "data/train.csv"
-  Titles, TrainData = ReadInput(trainfilename)
-  savepath = "./model/model"
-  NumBatch = 1
-  ActType = "Relu"
+  TrainData = ReadInput(trainfilename)
+  savepath = "./model/model_R0_B256_A0.9_L5"
+  NumBatch = 256
 
   # Build Network
   inputs = tf.placeholder(tf.float32, shape=[None, TrainData.shape[1]-1])
   labels = tf.placeholder(tf.float32, shape=[None])
 
-  layers, weights, bnvars = BuildNetwork(inputs, False, ActType)
+  layers, weights, bnvars = BuildNetwork(inputs, False)
   saver = tf.train.Saver()
   
   output = layers[-1][:,0]
